@@ -12,6 +12,8 @@ Then open <http://localhost:4173>.
 
 ## Deploy
 
-In GitHub, open **Settings → Pages**, select **Deploy from a branch**, and choose the repository's default branch and `/ (root)` folder.
+GitHub Pages is configured to use **GitHub Actions**. Every push to `main`
+deploys the site from the repository root. The workflow can also be run manually
+from the repository's **Actions** tab.
 
 Prices in the app are clearly labeled estimates because In-N-Out pricing varies by restaurant. This project is not affiliated with In-N-Out Burger.
