@@ -24,13 +24,13 @@ const MENU = [
 const BURGER_OPTIONS = [
   {title:'Style',hint:'Choose one',type:'radio',name:'style',values:['Regular','Animal Style','Protein Style','Tomato Wrap','No Bun']},
   {title:'Onions',hint:'Choose any combination',type:'checkbox',name:'onion',values:['Raw Onion','Chopped Raw Onion','Grilled Onion','Whole Grilled Onion','No Onion']},
-  {title:'Toppings & sauces',hint:'Choose as many as you like',type:'checkbox',name:'toppings',values:['Add Pickles','Add Chilies','Add Ketchup','Extra Spread','No Spread','No Tomato','No Lettuce']},
+  {title:'Toppings & sauces',hint:'Choose as many as you like',type:'checkbox',name:'toppings',values:['Add Pickles','Add Chopped Chilies','Add Ketchup','Extra Spread','No Spread','No Tomato','No Lettuce']},
   {title:'Preparation',hint:'Optional',type:'checkbox',name:'prep',values:['Mustard Fried','Extra Toast','Cold Cheese','Cut in Half']}
 ];
 
 const FRY_OPTIONS = [
   {title:'Fry cook',hint:'Choose one',type:'radio',name:'cook',values:['Regular','Light','Light Well','Well Done','Extra Well']},
-  {title:'Fry toppings',hint:'Choose as many as you like',type:'checkbox',name:'fry-toppings',values:['Add Cheese','Animal Style','Add Chilies','Add Ketchup','No Salt','Spread on Side']}
+  {title:'Fry toppings',hint:'Choose as many as you like',type:'checkbox',name:'fry-toppings',values:['Add Cheese','Animal Style','Add Chopped Chilies','Add Ketchup','No Salt','Spread on Side']}
 ];
 
 const DRINK_OPTIONS = [
@@ -66,14 +66,111 @@ const mealOptionsFor = item => [
 ];
 
 let state = JSON.parse(localStorage.getItem('out-about-order') || 'null') || {people:[],items:[],activePerson:null,dark:false};
-let activeCategory = 'All';
+const COMBO_ORDER = ['double','cheeseburger','hamburger'];
+const OPTION_ALIASES = {'Add Chilies':'Add Chopped Chilies'};
+
+let activeCategory = 'Combos';
 let activeItem = null;
 let editingUid = null;
 
 const $ = selector => document.querySelector(selector);
 const money = value => `$${value.toFixed(2)}`;
 const escapeHtml = value => String(value).replace(/[&<>'"]/g, character => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[character]));
-const itemDetails = item => [...(item.options || []),item.notes].filter(Boolean);
+const selectedValues = (item,name) => (item.selections?.[name] || []).map(value => OPTION_ALIASES[value] || value);
+const lower = value => value ? value.toLowerCase() : value;
+
+function burgerDetails(item){
+  const details = [];
+  const style = selectedValues(item,'style')[0];
+  if(style && style !== 'Regular') details.push(lower(style));
+  details.push(...selectedValues(item,'onion').map(lower));
+
+  const toppings = selectedValues(item,'toppings');
+  const ketchupInstead = toppings.includes('Add Ketchup') && toppings.includes('No Spread');
+  if(ketchupInstead) details.push('ketchup instead of spread');
+  const toppingLabels = {
+    'Add Pickles':'add pickles',
+    'Add Chopped Chilies':'add chopped chilies',
+    'Add Ketchup':'add ketchup',
+    'Extra Spread':'extra spread',
+    'No Spread':'no spread',
+    'No Tomato':'no tomato',
+    'No Lettuce':'no lettuce'
+  };
+  const toppingOrder = ['Add Pickles','Add Chopped Chilies','Add Ketchup','Extra Spread','No Spread','No Tomato','No Lettuce'];
+  for(const value of toppingOrder){
+    if(!toppings.includes(value)) continue;
+    if(ketchupInstead && (value === 'Add Ketchup' || value === 'No Spread')) continue;
+    details.push(toppingLabels[value]);
+  }
+  details.push(...selectedValues(item,'prep').map(lower));
+  return details;
+}
+
+function fryDetails(item,prefix = ''){
+  const cook = selectedValues(item,`${prefix}cook`)[0];
+  const toppings = selectedValues(item,`${prefix}fry-toppings`);
+  const details = [];
+  if(cook && cook !== 'Regular') details.push(`${lower(cook)} fries`);
+  const labels = {
+    'Add Cheese':'cheese fries',
+    'Animal Style':'animal style fries',
+    'Add Chopped Chilies':'add chopped chilies to fries',
+    'Add Ketchup':'ketchup for fries',
+    'No Salt':'no salt on fries',
+    'Spread on Side':'spread on the side'
+  };
+  details.push(...toppings.map(value => labels[value] || lower(value)));
+  return details;
+}
+
+function drinkDetails(item,prefix = ''){
+  const choice = selectedValues(item,`${prefix}drink`)[0];
+  if(!choice) return [];
+  const size = selectedValues(item,`${prefix}size`)[0];
+  const ice = selectedValues(item,`${prefix}ice`)[0];
+  const extras = selectedValues(item,`${prefix}drink-extras`);
+  let drink = size && size !== 'Medium' ? `${size} ${choice}` : choice;
+  const qualifiers = [];
+  if(ice && ice !== 'Regular') qualifiers.push(lower(ice));
+  if(extras.includes('Add Lemon')) qualifiers.push('lemon');
+  if(qualifiers.length) drink += ` with ${qualifiers.join(' and ')}`;
+  return [drink];
+}
+
+function shakeDetails(item){
+  const details = [];
+  const flavor = selectedValues(item,'flavor')[0];
+  if(flavor) details.push(`${flavor} flavor`);
+  details.push(...selectedValues(item,'shake-extras').map(lower));
+  return details;
+}
+
+function itemDetails(item){
+  const menuItem = MENU.find(candidate => candidate.id === item.id);
+  const hasSelections = item.selections && Object.keys(item.selections).length;
+  let details = [];
+  if(hasSelections && menuItem?.entree){
+    details.push(...burgerDetails(item));
+    const isMeal = selectedValues(item,'meal').some(value => value !== ENTREE_ONLY);
+    if(isMeal){
+      details.push(...fryDetails(item,'meal-fries-'));
+      details.push(...drinkDetails(item,'meal-drink-'));
+    }
+  }else if(hasSelections && menuItem?.cat === 'Fries'){
+    details.push(...fryDetails(item));
+  }else if(hasSelections && (menuItem?.id.includes('shake') || ['neapolitan','black-white'].includes(menuItem?.id))){
+    details.push(...shakeDetails(item));
+  }else if(hasSelections && menuItem?.cat === 'Drinks'){
+    details.push(...drinkDetails(item));
+  }else{
+    details = (item.options || []).map(value => value.replace(/^(Fries|Drink) · (Fry cook|Fry toppings|Choice|Size|Ice|Drink extras): /,'')).filter(value => value && value !== 'Regular');
+  }
+  if(item.notes) details.push(`Note: ${item.notes}`);
+  return details;
+}
+
+const itemSummary = item => itemDetails(item).join(', ') || 'As is';
 
 function save(){
   localStorage.setItem('out-about-order',JSON.stringify(state));
@@ -87,14 +184,22 @@ function toast(message){
 }
 
 function renderTabs(){
-  const categories = ['All','Burgers','Fries','Drinks','Secret'];
-  $('#tabs').innerHTML = categories.map(category => `<button class="tab ${category === activeCategory ? 'active' : ''}" data-cat="${category}">${category}${category === 'Secret' ? ' ✦' : ''}</button>`).join('');
+  const categories = ['Combos','Burgers','Fries','Drinks','Secret'];
+  $('#tabs').innerHTML = categories.map(category => `<button class="tab ${category === activeCategory ? 'active' : ''}" role="tab" data-cat="${category}" aria-selected="${category === activeCategory}">${category}${category === 'Secret' ? ' ✦' : ''}</button>`).join('');
 }
 
 function renderMenu(){
   const query = $('#searchInput').value.toLowerCase();
-  const items = MENU.filter(item => (activeCategory === 'All' || item.cat === activeCategory) && `${item.name} ${item.desc} ${item.base}`.toLowerCase().includes(query));
-  $('#menuGrid').innerHTML = items.length ? items.map(item => `<button class="menu-card" data-id="${item.id}"><span class="badge">${escapeHtml(item.base)}</span><h3>${escapeHtml(item.name)}</h3><p>${escapeHtml(item.desc)}</p><strong>${money(item.price)} est.</strong><i>＋</i></button>`).join('') : '<p class="no-results">Nothing matched that search.</p>';
+  const comboMode = activeCategory === 'Combos';
+  const categoryItems = comboMode ? COMBO_ORDER.map(id => MENU.find(item => item.id === id)) : MENU.filter(item => item.cat === activeCategory);
+  const items = categoryItems.filter(item => `${item.name} ${item.desc} ${item.base}`.toLowerCase().includes(query));
+  $('#menuGrid').classList.toggle('combo-grid',comboMode);
+  $('#menuGrid').innerHTML = items.length ? items.map(item => {
+    const badge = comboMode ? `${item.comboNumber} combo` : item.base;
+    const description = comboMode ? `${item.name}, fries, and a medium drink.` : item.desc;
+    const price = item.price + (comboMode ? MEAL_ADD_ON : 0);
+    return `<button class="menu-card" data-id="${item.id}" ${comboMode ? 'data-combo="true"' : ''}><span class="badge">${escapeHtml(badge)}</span><h3>${escapeHtml(item.name)}</h3><p>${escapeHtml(description)}</p><strong>${money(price)} est.</strong></button>`;
+  }).join('') : '<p class="no-results">Nothing matched that search.</p>';
 }
 
 function addPerson(){
@@ -124,8 +229,8 @@ function renderOrder(){
 
   const grouped = state.people.map(person => ({person,items:state.items.filter(item => item.person === person)})).filter(group => group.items.length);
   $('#orderList').innerHTML = grouped.map(group => `<div class="person-group"><h4>${escapeHtml(group.person)}</h4>${group.items.map(item => {
-    const details = itemDetails(item).map(escapeHtml).join(' · ') || 'As is';
-    return `<div class="order-item"><button class="item-edit" data-edit="${item.uid}" aria-label="Edit ${escapeHtml(item.name)}"><span><strong>${escapeHtml(item.name)} · ${money(item.price)}</strong><small>${details}</small></span><em>EDIT</em></button><button class="item-remove" data-remove="${item.uid}" aria-label="Remove ${escapeHtml(item.name)}">×</button></div>`;
+    const summary = escapeHtml(itemSummary(item));
+    return `<div class="order-item"><button class="item-edit" data-edit="${item.uid}" aria-label="Edit ${escapeHtml(item.name)}"><span class="item-copy"><span class="item-heading"><strong>${escapeHtml(item.name)}</strong><b>${money(item.price)}</b></span><small>${summary}</small></span><em>EDIT</em></button><button class="item-remove" data-remove="${item.uid}" aria-label="Remove ${escapeHtml(item.name)}">×</button></div>`;
   }).join('')}</div>`).join('');
   $('#subtotal').textContent = money(total);
 }
@@ -138,16 +243,17 @@ function optionsFor(item){
   return [];
 }
 
-function renderOptions(item,savedItem){
+function renderOptions(item,savedItem,prefillMeal = false){
   const savedMeal = savedItem?.selections?.meal || [];
   const mealSelected = savedMeal.some(value => value !== ENTREE_ONLY);
   return optionsFor(item).map(section => {
-    const savedValues = savedItem?.selections?.[section.name] || savedItem?.options || [];
+    const savedValues = (savedItem?.selections?.[section.name] || savedItem?.options || []).map(value => OPTION_ALIASES[value] || value);
     const sectionHasSavedValue = section.values.some(value => savedValues.includes(value));
     const disabled = section.mealDependent && !mealSelected;
     const choices = section.values.map((value,index) => {
       const isDefault = section.defaultValue ? value === section.defaultValue : index === 0;
-      const checked = savedValues.includes(value) || (section.type === 'radio' && !sectionHasSavedValue && isDefault);
+      let checked = savedValues.includes(value) || (section.type === 'radio' && !sectionHasSavedValue && isDefault);
+      if(!savedItem && section.name === 'meal') checked = prefillMeal ? value !== ENTREE_ONLY : value === ENTREE_ONLY;
       return `<label class="choice"><input type="${section.type}" name="${section.name}" value="${escapeHtml(value)}" ${checked ? 'checked' : ''} ${disabled ? 'disabled' : ''}><span>${escapeHtml(value)}</span></label>`;
     }).join('');
     return `<fieldset class="custom-section ${section.mealDependent && !mealSelected ? 'meal-dependent is-hidden' : section.mealDependent ? 'meal-dependent' : ''}"><legend>${escapeHtml(section.title)}</legend><p>${escapeHtml(section.hint)}</p><div class="choices">${choices}</div></fieldset>`;
@@ -168,7 +274,7 @@ function refreshMealOptions(){
   $('#dialogPrice').textContent = `${money(activeItem.price + (mealSelected ? MEAL_ADD_ON : 0))} estimated`;
 }
 
-function openItem(id,uid = null){
+function openItem(id,uid = null,prefillMeal = false){
   const savedItem = uid === null ? null : state.items.find(item => String(item.uid) === String(uid));
   if(!savedItem && !state.activePerson){
     $('#personInput').focus();
@@ -178,11 +284,11 @@ function openItem(id,uid = null){
   activeItem = MENU.find(item => item.id === id);
   if(!activeItem) return toast('That menu item is no longer available');
   editingUid = savedItem ? savedItem.uid : null;
-  $('#dialogTitle').textContent = activeItem.name;
-  $('#dialogDesc').textContent = activeItem.desc;
+  $('#dialogTitle').textContent = prefillMeal && activeItem.comboNumber ? `${activeItem.comboNumber} ${activeItem.name} Combo` : activeItem.name;
+  $('#dialogDesc').textContent = prefillMeal ? `${activeItem.desc} Includes fries and a medium drink.` : activeItem.desc;
   $('#dialogPrice').textContent = `${money(activeItem.price)} estimated`;
   $('#itemNotes').value = savedItem?.notes || '';
-  $('#customSections').innerHTML = renderOptions(activeItem,savedItem);
+  $('#customSections').innerHTML = renderOptions(activeItem,savedItem,prefillMeal);
   $('#saveItemBtn').textContent = savedItem ? 'SAVE CHANGES' : 'ADD ITEM';
   refreshMealOptions();
   $('#itemDialog').showModal();
@@ -239,7 +345,7 @@ function review(){
   $('#reviewContent').innerHTML = state.people.map(person => {
     const items = state.items.filter(item => item.person === person);
     if(!items.length) return '';
-    return `<section class="review-person"><h3>${escapeHtml(person)}</h3>${items.map(item => `<div class="review-line"><span><b>${escapeHtml(item.name)}</b><small>${itemDetails(item).map(escapeHtml).join(' · ') || 'As is'}</small></span><b>${money(item.price)}</b></div>`).join('')}</section>`;
+    return `<section class="review-person"><h3>${escapeHtml(person)}</h3>${items.map(item => `<div class="review-line"><span><b>${escapeHtml(item.name)}</b><small>${escapeHtml(itemSummary(item))}</small></span><b>${money(item.price)}</b></div>`).join('')}</section>`;
   }).join('') + `<div class="review-total"><span>Estimated subtotal</span><span>${money(state.items.reduce((sum,item) => sum + item.price,0))}</span></div>`;
   $('#reviewDialog').showModal();
 }
@@ -254,7 +360,7 @@ $('#tabs').addEventListener('click',event => {
 
 $('#menuGrid').addEventListener('click',event => {
   const button = event.target.closest('[data-id]');
-  if(button) openItem(button.dataset.id);
+  if(button) openItem(button.dataset.id,null,button.dataset.combo === 'true');
 });
 
 $('#searchInput').addEventListener('input',renderMenu);
