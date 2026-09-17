@@ -36,7 +36,8 @@ const FRY_OPTIONS = [
 const DRINK_OPTIONS = [
   {title:'Choice',hint:'Choose one',type:'radio',name:'drink',values:['Coke','Diet Coke','Coke Zero','7UP','Dr Pepper','Root Beer','Pink Lemonade','Light Lemonade','Iced Tea','Arnold Palmer']},
   {title:'Size',hint:'Choose one',type:'radio',name:'size',defaultValue:'Medium',values:['Small','Medium','Large','Extra Large']},
-  {title:'Ice',hint:'Choose one',type:'radio',name:'ice',values:['Regular','No Ice','Light Ice','Extra Ice']}
+  {title:'Ice',hint:'Choose one',type:'radio',name:'ice',values:['Regular','No Ice','Light Ice','Extra Ice']},
+  {title:'Drink extras',hint:'Optional',type:'checkbox',name:'drink-extras',values:['Add Lemon']}
 ];
 
 const SHAKE_OPTIONS = [
@@ -195,7 +196,7 @@ function readSelections(){
     if(section.mealDependent && !mealSelected) continue;
     const selected = [...document.querySelectorAll(`[name="${section.name}"]:checked`)].map(input => input.value);
     selections[section.name] = selected;
-    const visibleValues = selected.filter(value => value !== 'Regular' && value !== ENTREE_ONLY);
+    const visibleValues = section.name === 'meal' ? [] : selected.filter(value => value !== 'Regular' && value !== ENTREE_ONLY);
     options.push(...visibleValues.map(value => section.mealDependent ? `${section.title}: ${value}` : value));
   }
   return {selections,options,mealSelected};
@@ -205,16 +206,17 @@ function saveItem(){
   const {selections,options,mealSelected} = readSelections();
   const notes = $('#itemNotes').value.trim();
   const price = activeItem.price + (mealSelected ? MEAL_ADD_ON : 0);
+  const cartName = mealSelected ? (activeItem.comboNumber ? `${activeItem.comboNumber} ${activeItem.name} Combo` : `${activeItem.name} Meal`) : activeItem.name;
   if(editingUid !== null){
     const index = state.items.findIndex(item => String(item.uid) === String(editingUid));
     if(index !== -1){
       const previous = state.items[index];
-      state.items[index] = {...previous,id:activeItem.id,name:activeItem.name,price,options,selections,notes};
-      toast(`${activeItem.name} updated`);
+      state.items[index] = {...previous,id:activeItem.id,name:cartName,price,options,selections,notes};
+      toast(`${cartName} updated`);
     }
   }else{
-    state.items.push({uid:Date.now(),person:state.activePerson,id:activeItem.id,name:activeItem.name,price,options,selections,notes});
-    toast(`${activeItem.name} added for ${state.activePerson}`);
+    state.items.push({uid:Date.now(),person:state.activePerson,id:activeItem.id,name:cartName,price,options,selections,notes});
+    toast(`${cartName} added for ${state.activePerson}`);
   }
   save();
   renderOrder();

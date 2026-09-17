@@ -18,6 +18,13 @@
         <span class="arrow-mark">➜</span>
         <div><strong>ORDER OUT</strong><small>GROUP ORDER PAD</small></div>
       </div>
+      <svg class="palm-pair" viewBox="0 0 100 52" aria-hidden="true">
+        <g fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="3">
+          <path d="M48 49C47 35 43 22 34 11M52 49C53 35 57 22 66 11"/>
+          <path d="M34 11C25 4 16 5 9 10M34 11C29 2 22 0 16 3M34 11C36 3 42 0 49 3M34 11C24 12 17 18 13 25"/>
+          <path d="M66 11C75 4 84 5 91 10M66 11C71 2 78 0 84 3M66 11C64 3 58 0 51 3M66 11C76 12 83 18 87 25"/>
+        </g>
+      </svg>
       <div class="header-actions">
         <button class="icon-btn" id="themeBtn" aria-label="Toggle dark mode">☀︎</button>
         <button class="reset-btn" id="newOrderBtn">RESET</button>
@@ -44,7 +51,7 @@
 
     <button class="order-dock" id="openOrderBtn">
       <span class="dock-count" id="dockCount">0</span>
-      <span><b>VIEW GROUP ORDER</b><small id="dockPerson">Add a name to get started</small></span>
+      <span><b>GROUP ORDER</b><small id="dockPerson">Add a name to get started</small></span>
       <strong id="dockTotal">$0.00</strong>
     </button>
 
@@ -59,6 +66,7 @@
         <div><span>EST. SUBTOTAL</span><b id="subtotal">$0.00</b></div>
         <p>Prices vary by restaurant. Confirm at the counter.</p>
         <button class="review-btn" id="reviewBtn">REVIEW &amp; READ ORDER <span>→</span></button>
+        <button class="clear-order-btn" id="clearBtn">CLEAR ORDER</button>
       </div>
     </aside>
     <div class="scrim" id="scrim"></div>
@@ -67,9 +75,11 @@
   <dialog id="itemDialog">
     <form method="dialog" id="itemForm">
       <header class="dialog-header"><div><small>ITEM OPTIONS</small><h2 id="dialogTitle"></h2></div><button class="dialog-close" id="itemDialogClose" type="button" aria-label="Close">×</button></header>
-      <p id="dialogDesc" class="dialog-desc"></p>
-      <div class="custom-sections" id="customSections"></div>
-      <label class="notes-label">SPECIAL NOTE<textarea id="itemNotes" rows="2" placeholder="e.g. spread on the side"></textarea></label>
+      <div class="item-form-scroll">
+        <p id="dialogDesc" class="dialog-desc"></p>
+        <div class="custom-sections" id="customSections"></div>
+        <label class="notes-label">SPECIAL NOTE<textarea id="itemNotes" rows="2" placeholder="e.g. spread on the side"></textarea></label>
+      </div>
       <div class="dialog-footer"><span id="dialogPrice">$0.00</span><button class="add-item-btn" id="saveItemBtn" type="submit">ADD ITEM</button></div>
     </form>
   </dialog>
@@ -79,7 +89,6 @@
   </dialog>
 
   <div class="toast" id="toast" role="status"></div>
-  <button class="clear-link" id="clearBtn">Clear saved order</button>
   <button hidden id="howBtn"></button><span hidden id="itemCount">0 items</span>
   <script src="app.js"></script>
 </body>
