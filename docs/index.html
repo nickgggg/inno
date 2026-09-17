@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#ffffff">
+  <meta name="description" content="A fast, fan-made group order pad for In-N-Out runs.">
+  <title>Order Out — Group order pad</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Archivo+Narrow:wght@600;700&family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <main class="app-shell">
+    <header class="app-header">
+      <div class="wordmark" aria-label="Order Out">
+        <span class="arrow-mark">➜</span>
+        <div><strong>ORDER OUT</strong><small>GROUP ORDER PAD</small></div>
+      </div>
+      <div class="header-actions">
+        <button class="icon-btn" id="themeBtn" aria-label="Toggle dark mode">☀︎</button>
+        <button class="reset-btn" id="newOrderBtn">RESET</button>
+      </div>
+    </header>
+
+    <section class="person-bar">
+      <div class="person-heading"><span>1</span><div><b>WHO'S ORDERING?</b><small>Select a name before adding items</small></div></div>
+      <div class="person-entry">
+        <input id="personInput" maxlength="24" autocomplete="off" placeholder="Type a name">
+        <button id="addPersonBtn">ADD</button>
+      </div>
+      <div class="people" id="people"></div>
+    </section>
+
+    <section class="menu-panel">
+      <div class="menu-heading">
+        <div class="person-heading"><span>2</span><div><b>BUILD THEIR ORDER</b><small>Tap an item to customize it</small></div></div>
+        <label class="search-wrap"><span>⌕</span><input id="searchInput" type="search" placeholder="Search" aria-label="Search menu"></label>
+      </div>
+      <nav class="tabs" id="tabs" role="tablist" aria-label="Menu categories"></nav>
+      <div class="menu-grid" id="menuGrid"></div>
+    </section>
+
+    <button class="order-dock" id="openOrderBtn">
+      <span class="dock-count" id="dockCount">0</span>
+      <span><b>VIEW GROUP ORDER</b><small id="dockPerson">Add a name to get started</small></span>
+      <strong id="dockTotal">$0.00</strong>
+    </button>
+
+    <aside class="order-panel" id="orderPanel" aria-label="Group order">
+      <div class="order-title">
+        <div><small>GROUP ORDER</small><h2>Order ticket</h2></div>
+        <button class="close-order" id="closeOrderBtn" aria-label="Close order">×</button>
+      </div>
+      <div class="empty-state" id="emptyState"><span>☷</span><h3>No items yet</h3><p>Pick a name, then tap a menu button.</p></div>
+      <div class="order-list" id="orderList"></div>
+      <div class="totals">
+        <div><span>EST. SUBTOTAL</span><b id="subtotal">$0.00</b></div>
+        <p>Prices vary by restaurant. Confirm at the counter.</p>
+        <button class="review-btn" id="reviewBtn">REVIEW &amp; READ ORDER <span>→</span></button>
+      </div>
+    </aside>
+    <div class="scrim" id="scrim"></div>
+  </main>
+
+  <dialog id="itemDialog">
+    <form method="dialog" id="itemForm">
+      <header class="dialog-header"><div><small>ITEM OPTIONS</small><h2 id="dialogTitle"></h2></div><button class="dialog-close" value="cancel" aria-label="Close">×</button></header>
+      <p id="dialogDesc" class="dialog-desc"></p>
+      <div class="custom-sections" id="customSections"></div>
+      <label class="notes-label">SPECIAL NOTE<textarea id="itemNotes" rows="2" placeholder="e.g. spread on the side"></textarea></label>
+      <div class="dialog-footer"><span id="dialogPrice">$0.00</span><button class="add-item-btn" value="default">ADD ITEM</button></div>
+    </form>
+  </dialog>
+
+  <dialog id="reviewDialog" class="review-dialog">
+    <div><header class="dialog-header"><div><small>COUNTER VIEW</small><h2>Your order</h2></div><button class="dialog-close" id="reviewClose" aria-label="Close">×</button></header><div id="reviewContent"></div><div class="review-actions"><button class="secondary-btn" id="copyBtn">COPY</button><button class="add-item-btn" id="printBtn">PRINT</button></div></div>
+  </dialog>
+
+  <div class="toast" id="toast" role="status"></div>
+  <button class="clear-link" id="clearBtn">Clear saved order</button>
+  <button hidden id="howBtn"></button><span hidden id="itemCount">0 items</span>
+  <script src="app.js"></script>
+</body>
+</html>
