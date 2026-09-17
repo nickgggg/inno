@@ -1,105 +1,86 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="theme-color" content="#f5efe0" />
-  <meta name="description" content="A quick, fan-made group order builder for In-N-Out." />
-  <title>Out & About — Group order builder</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#ffffff">
+  <meta name="description" content="A fast, fan-made group order pad for In-N-Out runs.">
+  <title>Order Out — Group order pad</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Fraunces:opsz,wght@9..144,700;9..144,800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Archivo+Narrow:wght@600;700&family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  <header class="topbar">
-    <a class="brand" href="#" aria-label="Out and About home">
-      <span class="brand-mark">O<span>&</span>A</span>
-      <span><strong>OUT & ABOUT</strong><small>GROUP ORDER BUILDER</small></span>
-    </a>
-    <button class="icon-button" id="themeBtn" aria-label="Toggle dark mode">☀︎</button>
-  </header>
+  <main class="app-shell">
+    <header class="app-header">
+      <div class="wordmark" aria-label="Order Out">
+        <span class="arrow-mark">➜</span>
+        <div><strong>ORDER OUT</strong><small>GROUP ORDER PAD</small></div>
+      </div>
+      <div class="header-actions">
+        <button class="icon-btn" id="themeBtn" aria-label="Toggle dark mode">☀︎</button>
+        <button class="reset-btn" id="newOrderBtn">RESET</button>
+      </div>
+    </header>
 
-  <main>
-    <section class="hero">
-      <div class="hero-copy">
-        <p class="eyebrow"><span></span> BURGERS, BUT ORGANIZED</p>
-        <h1>Big orders.<br><em>Zero chaos.</em></h1>
-        <p class="dek">Build everyone's order, nail every customization, and walk up to the counter ready.</p>
-        <div class="hero-actions">
-          <a class="primary-btn" href="#builder">Start an order <span>↓</span></a>
-          <button class="text-btn" id="howBtn">How it works <span>↗</span></button>
-        </div>
+    <section class="person-bar">
+      <div class="person-heading"><span>1</span><div><b>WHO'S ORDERING?</b><small>Select a name before adding items</small></div></div>
+      <div class="person-entry">
+        <input id="personInput" maxlength="24" autocomplete="off" placeholder="Type a name">
+        <button id="addPersonBtn">ADD</button>
       </div>
-      <div class="hero-art" aria-label="Illustration of a burger order ticket">
-        <div class="sunburst"></div>
-        <div class="ticket">
-          <div class="ticket-top"><span>ORDER #</span><b>042</b></div>
-          <div class="burger-illustration" aria-hidden="true">
-            <i class="bun top"></i><i class="lettuce"></i><i class="cheese"></i><i class="patty"></i><i class="cheese second"></i><i class="patty second"></i><i class="bun bottom"></i>
-          </div>
-          <p>DOUBLE-DOUBLE</p><small>ANIMAL STYLE · + CHILIES</small>
-          <div class="ticket-line"></div><strong>$—.—</strong>
-        </div>
-        <span class="stamp">MADE<br>FRESH</span>
-      </div>
+      <div class="people" id="people"></div>
     </section>
 
-    <section class="builder" id="builder">
-      <div class="section-heading">
-        <div><p class="eyebrow"><span></span> BUILD THE RUN</p><h2>What's everyone having?</h2></div>
-        <button class="outline-btn" id="newOrderBtn">＋ New order</button>
+    <section class="menu-panel">
+      <div class="menu-heading">
+        <div class="person-heading"><span>2</span><div><b>BUILD THEIR ORDER</b><small>Tap an item to customize it</small></div></div>
+        <label class="search-wrap"><span>⌕</span><input id="searchInput" type="search" placeholder="Search" aria-label="Search menu"></label>
       </div>
-
-      <div class="workspace">
-        <section class="menu-panel">
-          <div class="search-wrap"><span>⌕</span><input id="searchInput" type="search" placeholder="Search burgers, fries, secret menu…" aria-label="Search menu"></div>
-          <div class="tabs" id="tabs" role="tablist"></div>
-          <div class="menu-grid" id="menuGrid"></div>
-        </section>
-
-        <aside class="order-panel">
-          <div class="order-title"><div><p>YOUR GROUP</p><h3>Order board</h3></div><span id="itemCount">0 items</span></div>
-          <div class="person-row">
-            <label for="personInput">Ordering for</label>
-            <div><input id="personInput" maxlength="24" placeholder="Add a name…"><button id="addPersonBtn" aria-label="Add person">＋</button></div>
-          </div>
-          <div class="people" id="people"></div>
-          <div class="empty-state" id="emptyState"><span>🍔</span><h4>Ready when you are</h4><p>Add a person, then tap any menu item to start their order.</p></div>
-          <div class="order-list" id="orderList"></div>
-          <div class="totals">
-            <div><span>Estimated subtotal</span><b id="subtotal">$0.00</b></div>
-            <p>Prices vary by location—check them before you go.</p>
-            <button class="checkout-btn" id="reviewBtn">Review order <span>→</span></button>
-          </div>
-        </aside>
-      </div>
+      <nav class="tabs" id="tabs" role="tablist" aria-label="Menu categories"></nav>
+      <div class="menu-grid" id="menuGrid"></div>
     </section>
 
-    <section class="feature-strip">
-      <article><b>01</b><div><h3>Everyone gets a name</h3><p>No more “wait, who wanted no onions?”</p></div></article>
-      <article><b>02</b><div><h3>Every little detail</h3><p>From mustard-fried to well-done fries.</p></div></article>
-      <article><b>03</b><div><h3>One clean readout</h3><p>Built to read right at the counter.</p></div></article>
-    </section>
+    <button class="order-dock" id="openOrderBtn">
+      <span class="dock-count" id="dockCount">0</span>
+      <span><b>VIEW GROUP ORDER</b><small id="dockPerson">Add a name to get started</small></span>
+      <strong id="dockTotal">$0.00</strong>
+    </button>
+
+    <aside class="order-panel" id="orderPanel" aria-label="Group order">
+      <div class="order-title">
+        <div><small>GROUP ORDER</small><h2>Order ticket</h2></div>
+        <button class="close-order" id="closeOrderBtn" aria-label="Close order">×</button>
+      </div>
+      <div class="empty-state" id="emptyState"><span>☷</span><h3>No items yet</h3><p>Pick a name, then tap a menu button.</p></div>
+      <div class="order-list" id="orderList"></div>
+      <div class="totals">
+        <div><span>EST. SUBTOTAL</span><b id="subtotal">$0.00</b></div>
+        <p>Prices vary by restaurant. Confirm at the counter.</p>
+        <button class="review-btn" id="reviewBtn">REVIEW &amp; READ ORDER <span>→</span></button>
+      </div>
+    </aside>
+    <div class="scrim" id="scrim"></div>
   </main>
-
-  <footer><span>OUT & ABOUT</span><p>Fan-made and not affiliated with In-N-Out Burger. Menu names belong to their respective owners.</p><button id="clearBtn">Clear saved order</button></footer>
 
   <dialog id="itemDialog">
     <form method="dialog" id="itemForm">
-      <button class="dialog-close" value="cancel" aria-label="Close">×</button>
-      <p class="eyebrow">CUSTOMIZE IT</p><h2 id="dialogTitle"></h2><p id="dialogDesc" class="dialog-desc"></p>
+      <header class="dialog-header"><div><small>ITEM OPTIONS</small><h2 id="dialogTitle"></h2></div><button class="dialog-close" value="cancel" aria-label="Close">×</button></header>
+      <p id="dialogDesc" class="dialog-desc"></p>
       <div class="custom-sections" id="customSections"></div>
-      <label class="notes-label">Special note<textarea id="itemNotes" rows="2" placeholder="Anything else for the counter?"></textarea></label>
-      <div class="dialog-footer"><span id="dialogPrice">$0.00</span><button class="primary-btn" value="default">Add to order</button></div>
+      <label class="notes-label">SPECIAL NOTE<textarea id="itemNotes" rows="2" placeholder="e.g. spread on the side"></textarea></label>
+      <div class="dialog-footer"><span id="dialogPrice">$0.00</span><button class="add-item-btn" value="default">ADD ITEM</button></div>
     </form>
   </dialog>
 
   <dialog id="reviewDialog" class="review-dialog">
-    <div><button class="dialog-close" id="reviewClose" aria-label="Close">×</button><p class="eyebrow">COUNTER-READY</p><h2>Your order</h2><div id="reviewContent"></div><div class="review-actions"><button class="outline-btn" id="copyBtn">Copy order</button><button class="primary-btn" id="printBtn">Print order</button></div></div>
+    <div><header class="dialog-header"><div><small>COUNTER VIEW</small><h2>Your order</h2></div><button class="dialog-close" id="reviewClose" aria-label="Close">×</button></header><div id="reviewContent"></div><div class="review-actions"><button class="secondary-btn" id="copyBtn">COPY</button><button class="add-item-btn" id="printBtn">PRINT</button></div></div>
   </dialog>
 
   <div class="toast" id="toast" role="status"></div>
+  <button class="clear-link" id="clearBtn">Clear saved order</button>
+  <button hidden id="howBtn"></button><span hidden id="itemCount">0 items</span>
   <script src="app.js"></script>
 </body>
 </html>
