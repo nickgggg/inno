@@ -1,17 +1,14 @@
 const MENU = [
-  {id:'combo-1',name:'#1 Double-Double Combo',cat:'Combos',price:10.40,desc:'Double-Double, French fries, and a soft drink.',base:'Combo'},
-  {id:'combo-2',name:'#2 Cheeseburger Combo',cat:'Combos',price:8.60,desc:'Cheeseburger, French fries, and a soft drink.',base:'Combo'},
-  {id:'combo-3',name:'#3 Hamburger Combo',cat:'Combos',price:8.10,desc:'Hamburger, French fries, and a soft drink.',base:'Combo'},
-  {id:'hamburger',name:'Hamburger',cat:'Burgers',price:3.60,desc:'Beef patty, lettuce, tomato, spread, and onion.',base:'Classic'},
-  {id:'cheeseburger',name:'Cheeseburger',cat:'Burgers',price:4.10,desc:'Beef patty with a slice of American cheese.',base:'Classic'},
-  {id:'double',name:'Double-Double',cat:'Burgers',price:5.90,desc:'Two beef patties and two slices of cheese.',base:'Classic'},
-  {id:'triple',name:'3×3',cat:'Secret',price:8.10,desc:'Three patties stacked with three slices of cheese.',base:'Not-so-secret'},
-  {id:'four',name:'4×4',cat:'Secret',price:10.20,desc:'Four patties and four slices of cheese.',base:'Not-so-secret'},
-  {id:'dutchman',name:'Flying Dutchman',cat:'Secret',price:5.20,desc:'Two patties and two cheese slices. No bun or produce.',base:'Not-so-secret'},
-  {id:'grilled-cheese',name:'Grilled Cheese',cat:'Secret',price:3.20,desc:'Two cheese slices, lettuce, tomato, spread, and onion.',base:'Meat-free'},
-  {id:'veggie',name:'Veggie Sandwich',cat:'Secret',price:2.40,desc:'Burger bun with lettuce, tomato, onion, and spread; no patty.',base:'Meat-free'},
-  {id:'protein',name:'Protein Style',cat:'Secret',price:4.10,desc:'Your burger wrapped in hand-leafed lettuce instead of a bun.',base:'Low-carb'},
-  {id:'animal-burger',name:'Animal Style Burger',cat:'Secret',price:4.40,desc:'Mustard-cooked patty, pickles, extra spread, grilled onions.',base:'Fan favorite'},
+  {id:'hamburger',name:'Hamburger',cat:'Burgers',price:3.60,desc:'Beef patty, lettuce, tomato, spread, and onion.',base:'#3 combo available',entree:true,comboNumber:'#3'},
+  {id:'cheeseburger',name:'Cheeseburger',cat:'Burgers',price:4.10,desc:'Beef patty with a slice of American cheese.',base:'#2 combo available',entree:true,comboNumber:'#2'},
+  {id:'double',name:'Double-Double',cat:'Burgers',price:5.90,desc:'Two beef patties and two slices of cheese.',base:'#1 combo available',entree:true,comboNumber:'#1'},
+  {id:'triple',name:'3×3',cat:'Secret',price:8.10,desc:'Three patties stacked with three slices of cheese.',base:'Not-so-secret',entree:true},
+  {id:'four',name:'4×4',cat:'Secret',price:10.20,desc:'Four patties and four slices of cheese.',base:'Not-so-secret',entree:true},
+  {id:'dutchman',name:'Flying Dutchman',cat:'Secret',price:5.20,desc:'Two patties and two cheese slices. No bun or produce.',base:'Not-so-secret',entree:true},
+  {id:'grilled-cheese',name:'Grilled Cheese',cat:'Secret',price:3.20,desc:'Two cheese slices, lettuce, tomato, spread, and onion.',base:'Meat-free',entree:true},
+  {id:'veggie',name:'Veggie Sandwich',cat:'Secret',price:2.40,desc:'Burger bun with lettuce, tomato, onion, and spread; no patty.',base:'Meat-free',entree:true},
+  {id:'protein',name:'Protein Style',cat:'Secret',price:4.10,desc:'Your burger wrapped in hand-leafed lettuce instead of a bun.',base:'Low-carb',entree:true},
+  {id:'animal-burger',name:'Animal Style Burger',cat:'Secret',price:4.40,desc:'Mustard-cooked patty, pickles, extra spread, grilled onions.',base:'Fan favorite',entree:true},
   {id:'fries',name:'French Fries',cat:'Fries',price:2.30,desc:'Choose regular, light, well done, or extra well in the options.',base:'Classic'},
   {id:'animal-fries',name:'Animal Style Fries',cat:'Fries',price:4.70,desc:'Fries topped with cheese, spread, and grilled onions.',base:'Fan favorite'},
   {id:'cheese-fries',name:'Cheese Fries',cat:'Fries',price:3.50,desc:'Fresh-cut fries topped with melted cheese.',base:'Off-menu'},
@@ -50,13 +47,21 @@ const SHAKE_OPTIONS = [
 const prefixedOptions = (prefix, label, sections) => sections.map(section => ({
   ...section,
   title:`${label} · ${section.title}`,
-  name:`${prefix}-${section.name}`
+  name:`${prefix}-${section.name}`,
+  mealDependent:true
 }));
 
-const COMBO_OPTIONS = [
-  ...prefixedOptions('combo-burger','Burger',BURGER_OPTIONS),
-  ...prefixedOptions('combo-fries','Fries',FRY_OPTIONS),
-  ...prefixedOptions('combo-drink','Drink',DRINK_OPTIONS)
+const ENTREE_ONLY = 'Entrée only';
+const MEAL_ADD_ON = 4.50;
+const MEAL_SIDE_OPTIONS = [
+  ...prefixedOptions('meal-fries','Fries',FRY_OPTIONS),
+  ...prefixedOptions('meal-drink','Drink',DRINK_OPTIONS)
+];
+
+const mealLabelFor = item => item.comboNumber ? `${item.comboNumber} Combo — fries + medium drink` : 'Add fries + medium drink';
+const mealOptionsFor = item => [
+  {title:'Make it a meal',hint:'Choose the entrée by itself or add fries and a drink.',type:'radio',name:'meal',values:[ENTREE_ONLY,mealLabelFor(item)]},
+  ...MEAL_SIDE_OPTIONS
 ];
 
 let state = JSON.parse(localStorage.getItem('out-about-order') || 'null') || {people:[],items:[],activePerson:null,dark:false};
@@ -81,7 +86,7 @@ function toast(message){
 }
 
 function renderTabs(){
-  const categories = ['All','Combos','Burgers','Fries','Drinks','Secret'];
+  const categories = ['All','Burgers','Fries','Drinks','Secret'];
   $('#tabs').innerHTML = categories.map(category => `<button class="tab ${category === activeCategory ? 'active' : ''}" data-cat="${category}">${category}${category === 'Secret' ? ' ✦' : ''}</button>`).join('');
 }
 
@@ -125,25 +130,41 @@ function renderOrder(){
 }
 
 function optionsFor(item){
-  if(item.cat === 'Combos') return COMBO_OPTIONS;
   if(item.cat === 'Fries') return FRY_OPTIONS;
   if(item.id.includes('shake') || ['neapolitan','black-white'].includes(item.id)) return SHAKE_OPTIONS;
   if(item.cat === 'Drinks') return DRINK_OPTIONS;
-  if(['Burgers','Secret'].includes(item.cat) && item.id !== 'root-float') return BURGER_OPTIONS;
+  if(item.entree) return [...BURGER_OPTIONS,...mealOptionsFor(item)];
   return [];
 }
 
 function renderOptions(item,savedItem){
+  const savedMeal = savedItem?.selections?.meal || [];
+  const mealSelected = savedMeal.some(value => value !== ENTREE_ONLY);
   return optionsFor(item).map(section => {
     const savedValues = savedItem?.selections?.[section.name] || savedItem?.options || [];
     const sectionHasSavedValue = section.values.some(value => savedValues.includes(value));
+    const disabled = section.mealDependent && !mealSelected;
     const choices = section.values.map((value,index) => {
       const isDefault = section.defaultValue ? value === section.defaultValue : index === 0;
       const checked = savedValues.includes(value) || (section.type === 'radio' && !sectionHasSavedValue && isDefault);
-      return `<label class="choice"><input type="${section.type}" name="${section.name}" value="${escapeHtml(value)}" ${checked ? 'checked' : ''}><span>${escapeHtml(value)}</span></label>`;
+      return `<label class="choice"><input type="${section.type}" name="${section.name}" value="${escapeHtml(value)}" ${checked ? 'checked' : ''} ${disabled ? 'disabled' : ''}><span>${escapeHtml(value)}</span></label>`;
     }).join('');
-    return `<fieldset class="custom-section"><legend>${escapeHtml(section.title)}</legend><p>${escapeHtml(section.hint)}</p><div class="choices">${choices}</div></fieldset>`;
+    return `<fieldset class="custom-section ${section.mealDependent && !mealSelected ? 'meal-dependent is-hidden' : section.mealDependent ? 'meal-dependent' : ''}"><legend>${escapeHtml(section.title)}</legend><p>${escapeHtml(section.hint)}</p><div class="choices">${choices}</div></fieldset>`;
   }).join('');
+}
+
+function isMealSelected(){
+  const selected = document.querySelector('[name="meal"]:checked');
+  return Boolean(activeItem?.entree && selected && selected.value !== ENTREE_ONLY);
+}
+
+function refreshMealOptions(){
+  const mealSelected = isMealSelected();
+  document.querySelectorAll('.meal-dependent').forEach(section => {
+    section.classList.toggle('is-hidden',!mealSelected);
+    section.querySelectorAll('input').forEach(input => {input.disabled = !mealSelected;});
+  });
+  $('#dialogPrice').textContent = `${money(activeItem.price + (mealSelected ? MEAL_ADD_ON : 0))} estimated`;
 }
 
 function openItem(id,uid = null){
@@ -162,33 +183,37 @@ function openItem(id,uid = null){
   $('#itemNotes').value = savedItem?.notes || '';
   $('#customSections').innerHTML = renderOptions(activeItem,savedItem);
   $('#saveItemBtn').textContent = savedItem ? 'SAVE CHANGES' : 'ADD ITEM';
+  refreshMealOptions();
   $('#itemDialog').showModal();
 }
 
 function readSelections(){
   const selections = {};
   const options = [];
+  const mealSelected = isMealSelected();
   for(const section of optionsFor(activeItem)){
+    if(section.mealDependent && !mealSelected) continue;
     const selected = [...document.querySelectorAll(`[name="${section.name}"]:checked`)].map(input => input.value);
     selections[section.name] = selected;
-    const visibleValues = selected.filter(value => value !== 'Regular');
-    options.push(...visibleValues.map(value => activeItem.cat === 'Combos' ? `${section.title}: ${value}` : value));
+    const visibleValues = selected.filter(value => value !== 'Regular' && value !== ENTREE_ONLY);
+    options.push(...visibleValues.map(value => section.mealDependent ? `${section.title}: ${value}` : value));
   }
-  return {selections,options};
+  return {selections,options,mealSelected};
 }
 
 function saveItem(){
-  const {selections,options} = readSelections();
+  const {selections,options,mealSelected} = readSelections();
   const notes = $('#itemNotes').value.trim();
+  const price = activeItem.price + (mealSelected ? MEAL_ADD_ON : 0);
   if(editingUid !== null){
     const index = state.items.findIndex(item => String(item.uid) === String(editingUid));
     if(index !== -1){
       const previous = state.items[index];
-      state.items[index] = {...previous,id:activeItem.id,name:activeItem.name,price:activeItem.price,options,selections,notes};
+      state.items[index] = {...previous,id:activeItem.id,name:activeItem.name,price,options,selections,notes};
       toast(`${activeItem.name} updated`);
     }
   }else{
-    state.items.push({uid:Date.now(),person:state.activePerson,id:activeItem.id,name:activeItem.name,price:activeItem.price,options,selections,notes});
+    state.items.push({uid:Date.now(),person:state.activePerson,id:activeItem.id,name:activeItem.name,price,options,selections,notes});
     toast(`${activeItem.name} added for ${state.activePerson}`);
   }
   save();
@@ -257,14 +282,14 @@ $('#orderList').addEventListener('click',event => {
 });
 
 $('#customSections').addEventListener('change',event => {
-  if(event.target.value !== 'No Onion' || !event.target.checked) return;
-  const group = event.target.name;
-  document.querySelectorAll(`[name="${group}"]`).forEach(input => {if(input !== event.target) input.checked = false;});
-});
-
-$('#customSections').addEventListener('change',event => {
-  if(!event.target.checked || event.target.value === 'No Onion' || !event.target.name.includes('onion')) return;
-  const noOnion = document.querySelector(`[name="${event.target.name}"][value="No Onion"]`);
+  const input = event.target;
+  if(input.name === 'meal') refreshMealOptions();
+  if(!input.checked || !input.name.includes('onion')) return;
+  if(input.value === 'No Onion'){
+    document.querySelectorAll(`[name="${input.name}"]`).forEach(option => {if(option !== input) option.checked = false;});
+    return;
+  }
+  const noOnion = document.querySelector(`[name="${input.name}"][value="No Onion"]`);
   if(noOnion) noOnion.checked = false;
 });
 

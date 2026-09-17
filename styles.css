@@ -127,4 +127,5 @@ dialog{overflow:hidden}
 .order-item .item-remove{width:38px;border-left:1px solid var(--line);grid-row:auto}
 .person-entry input,.search-wrap input,.notes-label textarea{font-size:16px}
 body.dark .custom-section{background:#30332c}
+.meal-dependent.is-hidden{display:none}
 @media(max-width:380px){.choices{grid-template-columns:1fr}.menu-heading{align-items:flex-start;gap:8px}.search-wrap{width:104px}}
